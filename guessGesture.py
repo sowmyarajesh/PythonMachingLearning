@@ -2,19 +2,27 @@ import numpy as np
 import cv2 as cv
 from PIL import Image, ImageFilter
 from keras.models import Sequential
-from tkinter import *
+import tkinter as tk
 import tensorflow as tf
 from tensorflow import keras
 
 def guess():
-    vdo = cv.VideoCapture(0)
-    userImg = vdo.read()
+    vdo = cv.VideoCapture(0+cv.CAP_DSHOW)
+    retval,userImg = vdo.read()
     vdo.release()
-
+    # Destroy all the windows
+    cv.destroyAllWindows()
+    if retval != True:
+        print("Can't read frame")
+        return
     userImg = cv.cvtColor(userImg, cv.COLOR_BGR2GRAY)
     userImg = cv.resize(userImg, (48, 36), interpolation = cv.INTER_CUBIC)
+    cv.imshow('frame',userImg)
 
     np_img = np.asarray(userImg)
+    
+    # should you delete row / column? the 3rd argument in this delete function can only be 0=row, 1-=col
+    # you mentioned here 2 which is  out of bounds
     np_img = np.delete(np_img, 2, 2)
     np_img = np.delete(np_img, 1, 2)
     np_img = np.reshape(np_img, (36, 48, 1))
@@ -24,28 +32,29 @@ def guess():
     predictions = probability_model.predict(np_img)
     np.argmax(predictions[0])
     if predictions[0]==0:
-        guess = Label(frame, text = "Palm(Vertical)")
+        guess = tk.Label(frame, text = "Palm(Vertical)")
     elif predictions[0]==1:
-        guess = Label(frame, text = "Palm(Horizontal)")
+        guess = tk.Label(frame, text = "Palm(Horizontal)")
     elif predictions[0]==2:
-        guess = Label(frame, text = "1 finger")
+        guess = tk.Label(frame, text = "1 finger")
     elif predictions[0]==3:
-        guess = Label(frame, text = "Fist")
+        guess = tk.Label(frame, text = "Fist")
     elif predictions[0]==4:
-        guess = Label(frame, text = "Thumbs Up")
+        guess = tk.Label(frame, text = "Thumbs Up")
     guess.pack()
 
+if __name__=='__main__':
+    root = tk.Tk()
+    root.geometry("640x480")
+    frame = tk.Frame(root)
+    frame.pack()
 
-root = Tk()
-root.geometry("640x480")
-frame = Frame(root)
-frame.pack()
+    label = tk.Label(frame, text = "Click to Guess your Hand Gesture!", command = guess())
+    label.pack()
 
-label = Label(frame, text = "Click to Guess your Hand Gesture!", command = guess())
-label.pack()
+    testButton = tk.Button(frame, text = "Guess")
+    testButton.pack(padx = 3, pady = 3)
 
-testButton = Button(frame, text = "Guess")
-testButton.pack(padx = 3, pady = 3)
+    root.title("Test")
+    root.mainloop()
 
-root.title("Test")
-root.mainloop()
