@@ -1,1 +1,1 @@
-Image files go in this folder
+All data files goes in this folder
